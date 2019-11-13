@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearch
+  namespace: elasticsearch
+  labels:
+    k8s-app: elasticsearch
+    version: v6.3.2
+spec:
+  selector:
+    k8s-app: elasticsearch
+    version: v6.3.2
+  clusterIP: None
+  ports:
+    - name: rest
+      port: 9200
+    - name: inter-node
+      port: 9300

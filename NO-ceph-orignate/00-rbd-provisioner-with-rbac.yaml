@@ -1,0 +1,97 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rbd-provisioner
+  namespace: kube-system
+  labels:
+    app: rbd-provisioner
+spec:
+  selector:
+    app: rbd-provisioner
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rbd-provisioner
+  namespace: kube-system
+
+---
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-provisioner
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    resourceNames: ["kube-dns","coredns","elasticsearch","elasticsearch-extenal-http","rbd-provisioner"]
+    verbs: ["list", "get"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ceph-secret", "default-token-fdznl", "elasticsearch-dev-token-hvlfl"]
+    verbs: ["get", "update", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-provisioner
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
+    name: rbd-provisioner
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: rbd-provisioner
+  apiGroup: rbac.authorization.k8s.io
+ 
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rbd-provisioner
+  namespace: kube-system
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: rbd-provisioner
+    spec:
+      serviceAccount: rbd-provisioner
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        operator: Exists
+        key: node.cloudprovider.kubernetes.io/uninitialized
+      nodeSelector:
+         node-role.kubernetes.io/master: ""
+      containers:
+      - name: rbd-provisioner
+        image: "quay.io/external_storage/rbd-provisioner:latest"
+        imagePullPolicy: Never
+        env:
+        - name: PROVISIONER_NAME
+          value: ceph.com/rbd

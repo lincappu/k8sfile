@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-sc-pvc
+  namespace: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce 
+  storageClassName: ceph-storage-elasticsearch
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysctl-conf-1
+  namespace: mongodb
+data:
+  enabled: never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysctl-conf-2
+  namespace: mongodb
+data:
+  defrag: never

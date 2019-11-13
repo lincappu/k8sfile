@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ds-test-block
+  labels:
+    app: nginx-ds-test-block
+spec:
+  ports:
+  - name: http
+    port: 80
+  selector:
+    app: nginx-ds-test-block
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-ds-test-block
+spec:
+  selector:
+    matchLabels:
+      app: nginx-ds-test-block
+  serviceName: "nginx-ds-test-block"
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: nginx-ds-test-block
+    spec:
+      containers:
+      - name: nginx-ds-test-block
+        image: nginx:1.7.9
+        ports:
+        - name: web 
+          containerPort: 80
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata: 
+     name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: rook-ceph-block-elasticsearch-dev
+      resources:
+        requests:
+          storage: 1Gi

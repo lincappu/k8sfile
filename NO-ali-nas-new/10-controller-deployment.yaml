@@ -1,0 +1,100 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: alicloud-nas-new
+provisioner: alicloud/nasnew
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: alicloud-disk-controller-runner-new
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "update", "patch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alicloud-nas-controller-new
+  namespace: kube-system
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: run-alicloud-nas-controller-new
+subjects:
+  - kind: ServiceAccount
+    name: alicloud-nas-controller-new
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: alicloud-disk-controller-runner-new
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: alicloud-nas-controller-new
+  namespace: kube-system
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  template: 
+    metadata:
+      labels:
+        app: alicloud-nas-controller-new
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        operator: Exists
+        key: node.cloudprovider.kubernetes.io/uninitialized
+      nodeSelector:
+         node-role.kubernetes.io/master: ""
+      serviceAccount: alicloud-nas-controller-new
+      containers:
+        - name: alicloud-nas-controller-new
+          image: registry.cn-hangzhou.aliyuncs.com/acs/alicloud-nas-controller:v1.8.4
+          volumeMounts:
+          - mountPath: /persistentvolumes
+            name: nfs-client-root-new
+          env:
+            - name: PROVISIONER_NAME
+              value: alicloud/nasnew
+            - name: NFS_SERVER
+              value: 1d23f4b48f-goh76.cn-beijing.nas.aliyuncs.com
+            - name: NFS_PATH
+              value: /
+      volumes:
+        - name: nfs-client-root-new
+          nfs:
+            server: 1d23f4b48f-goh76.cn-beijing.nas.aliyuncs.com
+            path: /
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: alicloud-nas-controller-new
+  name: alicloud-nas-controller-new
+  namespace: kube-system
+spec:
+  clusterIP: None
+  selector:
+    app: alicloud-nas-controller-new

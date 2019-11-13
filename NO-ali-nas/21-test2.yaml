@@ -1,0 +1,28 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: nginx
+spec:
+  serviceName: "nginx"
+  replicas: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: nginx
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: alicloud-nas
+      resources:
+        requests:
+          storage: 2Gi
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        volumeMounts:
+        - mountPath: "/usr/share/nginx/html/"
+          name: nginx

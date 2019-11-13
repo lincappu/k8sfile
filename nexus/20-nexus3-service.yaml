@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus3-svc
+  namespace: devops
+  labels:
+    app: nexus3
+spec:
+  type: NodePort
+  ports:
+    - name: nexus3-group
+      port: 5000
+      targetPort: 5000
+      nodePort: 32020
+    - name: nexus3-web
+      port: 8081
+      targetPort: 8081
+      nodePort: 32021
+    - name: nexus3-hosted
+      port: 8082
+      targetPort: 8082
+      nodePort: 32022
+    - name: nexus3-proxy
+      port: 8083
+      targetPort: 8083
+      nodePort: 32023
+    - name: nexus3-other
+      port: 8084
+      targetPort: 8084
+      nodePort: 32024
+  selector:
+    app: nexus3

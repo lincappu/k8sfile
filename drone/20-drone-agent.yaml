@@ -1,0 +1,81 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: drone-agent
+  namespace: devops
+  labels:
+    app: drone-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drone-agent
+  template:
+    metadata:
+      labels:
+        app: drone-agent
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: node5
+      containers:
+      - image: drone/agent:1
+        name: drone-agent
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+          # Enables Docker in Docker
+          - name: docker-socket
+            mountPath: /var/run/docker.sock
+          - name: docker-config
+            mountPath: /etc/docker/daemon.json 
+          - name: docker-auth
+            mountPath: /root/.docker/config.json
+        resources:
+          requests:
+            cpu: 4000m
+            memory: 2000Mi
+#        livenessProbe:
+#          httpGet:
+#            path: /healthz
+#            port: 3000
+#          initialDelaySeconds: 3
+#          periodSeconds: 3
+        env:
+        - name: DRONE_HTTP_HOST
+          value: "runner.alphalawyer.cn"
+        - name: DRONE_HTTP_PROTO
+          value: "http"
+        - name: DRONE_RPC_DUMP_HTTP
+          value: "true"
+        - name: DRONE_RPC_DUMP_HTTP_BODY
+          value: "true"
+        - name: DRONE_UI_USERNAME
+          value: "root"
+        - name: DRONE_UI_PASSWORD
+          value: "ZmRmODZkMTgwYjdj"
+        - name: DRONE_RPC_HOST
+          value: "drone.alphalawyer.cn"
+        - name: DRONE_RPC_PROTO
+          value: "https"
+        # issue: https://github.com/drone/drone/issues/2048
+        - name: DOCKER_API_VERSION
+          value: "1.39"
+        - name: DRONE_RPC_SECRET
+          value: "eW91cnBhc3N3b3Jk"
+        - name: DRONE_RUNNER_CAPACITY
+          value: "10"
+        - name: DRONE_RUNNER_NAME
+          value: "first-docker-runner"
+        - name: DRONE_TRACE
+          value: "true"
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: docker-config
+          hostPath:
+            path: /etc/docker/daemon.json
+        - name: docker-auth
+          hostPath:
+            path: /root/.docker/config.json

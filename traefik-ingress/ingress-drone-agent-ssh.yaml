@@ -1,0 +1,17 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: drone-agent-ssh
+  namespace: devops 
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: runner.alphalawyer.cn 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: drone-agent-ssh
+          servicePort: 3000

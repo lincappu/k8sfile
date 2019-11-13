@@ -1,0 +1,18 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cerebro-dev-web 
+  namespace: elasticsearch
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: dm.alphalawyer.cn 
+    http:
+      paths:
+      - path: /cerebro-dev/
+        backend:
+          serviceName: cerebro-dev
+          servicePort: 9000

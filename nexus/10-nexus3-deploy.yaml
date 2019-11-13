@@ -1,0 +1,53 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: nexus3
+  name: nexus3
+  namespace: devops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus3
+  template:
+    metadata:
+      labels:
+        app: nexus3
+    spec:
+      containers:
+      - name: nexus3
+        image: sonatype/nexus3:latest
+        imagePullPolicy: IfNotPresent
+#        securityContext:
+#          privileged: false
+        resources:
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"
+          requests:
+            cpu: "4000m"
+            memory: "2Gi"
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        - containerPort: 8081
+          protocol: TCP
+        - containerPort: 8082
+          protocol: TCP
+        - containerPort: 8083
+          protocol: TCP
+        - containerPort: 8084
+          protocol: TCP
+        volumeMounts:
+        - name: nexus-data
+          mountPath: /nexus-data
+        - name: localtime
+          mountPath: /etc/localtime
+      volumes:
+      - name: nexus-data
+        persistentVolumeClaim:
+          claimName: nexus-data
+      - name: localtime
+        hostPath:
+          path: /etc/localtime

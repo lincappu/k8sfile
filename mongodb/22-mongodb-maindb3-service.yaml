@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-shard3-service
+  labels:
+    name: mongodb-shard3
+  namespace: mongodb
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
+  selector:
+    role: mongodb-shard3
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongod-shard3
+  namespace: mongodb
+spec:
+  serviceName: mongodb-shard3-service
+  replicas: 3
+  selector:
+    matchLabels:
+      role: mongodb-shard3
+      tier: maindb
+  template:
+    metadata:
+      labels:
+        role: mongodb-shard3
+        tier: maindb
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: secrets-volume
+          secret:
+            secretName: shared-bootstrap-data
+            defaultMode: 256
+        - name: sysctl-config-1
+          configMap:
+            name: sysctl-conf-1
+        - name: sysctl-config-2
+          configMap:
+            name: sysctl-conf-2
+      containers:
+        - name: mongod-shard3-container
+          image: mongo
+          command:
+            - "numactl"
+            - "--interleave=all"
+            - "mongod"
+            - "--port"
+            - "27017"
+            - "--wiredTigerCacheSizeGB"
+            - "10"
+            - "--bind_ip"
+            - "0.0.0.0"
+            - "--shardsvr"
+            - "--replSet"
+            - "Shard3RepSet"
+            - "--auth"
+            - "--clusterAuthMode"
+            - "keyFile"
+            - "--keyFile"
+            - "/etc/secrets-volume/internal-auth-mongodb-keyfile"
+            - "--setParameter"
+            - "authenticationMechanisms=SCRAM-SHA-1"
+          resources:
+            requests:
+              cpu: 0.25
+              memory: 1024Mi
+            limits:
+              memory: "12Gi"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: secrets-volume
+              readOnly: true
+              mountPath: /etc/secrets-volume
+            - name: mongo-shard3-persistent-storage-claim
+              mountPath: /data/db
+            - name: sysctl-config-1
+              mountPath: /sys/kernel/mm/transparent_hugepage/enabled
+              subPath: enabled
+            - name: sysctl-config-2
+              mountPath: /sys/kernel/mm/transparent_hugepage/defrag
+              subPath: defrag
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-shard3-persistent-storage-claim
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: alicloud-nas
+      resources:
+        requests:
+          storage: 2000Gi

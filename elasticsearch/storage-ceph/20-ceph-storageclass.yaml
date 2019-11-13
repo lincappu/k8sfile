@@ -1,0 +1,19 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-storage-elasticsearch
+  namespace: elasticsearch
+provisioner: ceph.com/rbd
+parameters:
+  monitors: 172.16.82.101:6789,172.16.82.102:6789,172.16.82.103:6789
+  adminId: admin
+  adminSecretName: ceph-secret
+  adminSecretNamespace: elasticsearch
+  pool: elasticsearchpool
+  userId: admin
+  userSecretName: ceph-secret
+  fsType: xfs
+  imageFormat: "2"
+  imageFeatures: "layering"
+reclaimPolicy: Retain
+allowVolumeExpansion: true

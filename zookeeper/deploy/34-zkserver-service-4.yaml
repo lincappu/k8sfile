@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zk-node4
+  name: zk-node4
+  namespace: devops
+spec:
+  clusterIP: None
+  ports:
+  - port: 2181
+    protocol: TCP
+    targetPort: 2181
+    name: client
+  - port: 2888
+    protocol: TCP
+    targetPort: 2888
+    name: leader
+  - port: 3888
+    protocol: TCP
+    targetPort: 3888
+    name: leader-election
+  selector:
+    app: zk-node4

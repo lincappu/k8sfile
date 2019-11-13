@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: droneserver
+  namespace: devops
+  labels: 
+    app: droneserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: droneserver
+  template:
+    metadata:
+      labels:
+        app: droneserver
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: node5
+      containers:
+      - image: drone/drone:1
+        name: droneserver
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
+        volumeMounts:
+          # Persist our configs in an SQLite DB in here
+          - name: drone-server-sqlite-db
+            mountPath: /data
+          - name: localtime
+            mountPath: /etc/localtime
+        resources:
+          requests:
+            cpu: 4000m
+            memory: 4Gi
+        env:
+        # Gitea settings 
+        - name: DRONE_GITEA_SERVER
+          value: "https://dg.alphalawyer.cn"
+        - name: DDRONE_GITEA_CLIENT_ID
+          value: "60e1534c-7f19-4871-b1f1-77c928c2062b"
+        - name: DRONE_GITEA_CLIENT_SECRET
+          value: "I8HxTyK87h0SdnJi8EDI-baR3GV0QZvyI-iYqqLJ7gw="
+        # Drone  settings
+        - name: DRONE_USER_CREATE
+          value: "username:drone,admin:true"
+        - name: DRONE_SERVER_HOST
+          value: "drone.alphalawyer.cn"
+        - name: DRONE_SERVER_PROTO
+          value: "https"
+        - name: DRONE_RPC_SECRET
+          value: "eW91cnBhc3N3b3Jk"
+        - name: DRONE_AGENTS_ENABLED
+          value: "true"
+        - name: DRONE_LOGS_PRETTY
+          value: "true"
+        - name: DRONE_LOGS_COLOR
+          value: "true"
+        - name: DRONE_LOGS_TEXT
+          value: "true"
+        - name: DRONE_LOGS_DEBUG
+          value: "true"
+        - name: DRONE_COOKIE_SECRET
+          value: "eW91cnBhc3N3b3Jk"
+        - name: DRONE_COOKIE_TIMEOUT
+          value: "168h"
+        - name: DRONE_GITEA_SKIP_VERIFY
+          value: "true"
+        # backend database
+        - name: DRONE_DATABASE_DATASOURCE
+          value: "/data/database.sqlite"
+        - name: DRONE_DATABASE_DRIVER
+          value: "sqlite3"
+      volumes:
+      - name: drone-server-sqlite-db
+        hostPath:
+          path: /data/drone
+          type: Directory
+      - name: localtime
+        hostPath:
+          path: /etc/localtime

@@ -1,0 +1,25 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nexus3
+  namespace: devops 
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: repo.alphalawyer.cn 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nexus3-svc
+          servicePort: 9082
+  - host: registry.alphalawyer.cn  
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nexus3-svc
+          servicePort: 5000

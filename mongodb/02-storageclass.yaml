@@ -1,0 +1,13 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block-mongodb-dev
+  namespace: mongodb
+provisioner: ceph.rook.io/block
+parameters:
+  blockPool: mongodb-dev
+  clusterNamespace: rook-ceph
+  fstype: xfs
+reclaimPolicy: Retain
+allowVolumeExpansion: true

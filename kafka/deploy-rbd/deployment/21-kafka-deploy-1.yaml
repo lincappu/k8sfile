@@ -1,0 +1,82 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka-node1
+  namespace: devops
+  labels:
+    app: kafka-node1
+    version: v2.11
+spec:
+  selector:
+    matchLabels:
+      app: kafka-node1
+      version: v2.11
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kafka-node1
+        version: v2.11
+    spec:
+      hostname: kafka-node1
+      nodeSelector:
+        kubernetes.io/hostname: node1
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: kafka-node1
+        image: wurstmeister/kafka:2.11-1.1.1
+        resources:
+          requests:
+            memory: "12Gi"
+            cpu: "4"
+          limits:
+            memory: "12Gi"
+            cpu: "4"
+        ports:
+        - containerPort: 9092
+          name: server
+        - containerPort: 9099
+          name: jmx
+        env:
+        - name: "KAFKA_BROKER_ID"
+          value: "1"
+        - name: "KAFKA_ZOOKEEPER_CONNECT"
+          value: "zk-node1:2181,zk-node2:2181,zk-node3:2181,zk-node4:2181,zk-node5:2181"
+        - name: "KAFKA_ADVERTISED_PORT"
+          value: "9092"
+        - name: "KAFKA_ADVERTISED_HOST_NAME"
+          value: "kafka-node1"
+        - name: "KAFKA_ADVERTISED_LISTENERS"
+          value: "PLAINTEXT://kafka-node1.devops:9092"
+        - name: "KAFKA_NUM_NETWORK_THREADS"
+          value: "9"
+        - name: "KAFKA_NUM_IO_THREADS"
+          value: "24"
+        - name: "KAFKA_DEFAULT_REPLICATION_FACTOR"
+          value: "3"
+        - name: "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"
+          value: "3"
+        - name: "KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE"
+          value: "true"
+        - name: "KAFKA_AUTO_LEADER_REBALANCE_ENABLE"
+          value: "true"
+        - name: "KAFKA_LOG_RETENTION_HOURS"
+          value: "720"
+        - name: "KAFKA_HEAP_OPTS"
+          value: "-Xmx10G -Xms10G"
+        - name: "KAFKA_JMX_OPTS"
+          value: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka-node1  -Dcom.sun.management.jmxremote.rmi.port=9099"
+#        - name: "JMX_PORT"
+#          value: "9099"
+        volumeMounts:
+        - name: datadir
+          mountPath: /kafka
+        - name: logdir
+          mountPath: /opt/kafka/logs
+      volumes:
+      - name: datadir
+        persistentVolumeClaim: 
+          claimName: kafka-node1-pvc-data
+      - name: logdir
+        persistentVolumeClaim:
+          claimName: kafka-node1-pvc-log

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-consumer
+spec:
+  restartPolicy: Never
+  containers:
+  - name: job-consumer
+    image: 172.16.82.12:32022/case-parse-job:dev-201911072037
+    env: 
+    - name: SPRING_PROFILES_ACTIVE
+      value: mq
+  nodeSelector:
+     kubernetes.io/hostname: node5

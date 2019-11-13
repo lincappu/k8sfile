@@ -1,0 +1,17 @@
+dashboard  安装的时候有两种RBAC是可选项，可以不创建，然后登陆的使用K8S内置的 sa：namespace-controller的 token 来登陆，下面是获取方式：
+kubectl -n kube-system describe $(kubectl -n kube-system get secret -n kube-system -o name | grep namespace) | grep token
+如果在创建 dashboard 的时候创建的 专门的 sa，这时候就可以用这个专门的 sa 的 token 来登陆。
+1.动创建的方式：
+# 创建service account
+kubectl create sa dashboard-admin -n kube-system
+# 创建角色绑定关系
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+# 查看dashboard-admin的secret名字
+ADMIN_SECRET=$(kubectl get secrets -n kube-system | grep dashboard-admin | awk '{print $1}')
+# 打印secret的token
+kubectl describe secret -n kube-system ${ADMIN_SECRET} | grep -E '^token' | awk '{print $2}'
+
+2.yaml 文件创建的方式：
+使用yaml的创建好 sa 以后，然后通过
+ADMIN_SECRET=$(kubectl get secrets -n kube-system | grep SANAME | awk '{print $1}')     来获相对应的 sa 的 token name，然后使用
+kubectl describe secret -n kube-system ${ADMIN_SECRET} | grep -E '^token' | awk '{print $2}'    来获取这个 tokenname 的具体 token

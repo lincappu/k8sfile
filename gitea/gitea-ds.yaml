@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: devops
+  labels:
+    app: gitea
+spec:
+  ports:
+    - name: gitea
+      port: 3000
+      targetPort: 3000
+    - name: gitea-ssh
+      port: 22
+      targetPort: 22
+  selector:
+    app: gitea
+  type: ClusterIP
+  sessionAffinity: ClientIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: devops
+  labels:
+    app: gitea
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: node5
+      initContainers:
+      - name: fix-permissions
+        image: busybox:latest
+        command: ["sh", "-c", "chown -R 1000:1000 /data"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: git-data
+          mountPath: "/data"
+      containers:
+      - name: gitea
+        image: gitea/gitea:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: gitea
+        - containerPort: 22
+          name: git-ssh
+        volumeMounts:
+        - mountPath: /data
+          name: git-data
+      volumes:
+      - name: git-data
+        hostPath:
+          path: /data/gitea
+          type: Directory

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-kafka-test
+spec:
+  containers:
+  - name: job-8
+    image: 172.16.71.16:9082/case-parse-job:dev-kafka-test
+  nodeSelector:
+     kubernetes.io/hostname: node5

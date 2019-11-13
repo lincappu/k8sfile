@@ -1,0 +1,22 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearch-extenal-http
+  namespace: elasticsearch
+  labels:
+    k8s-app: elasticsearch
+    version: v6.3.2
+spec:
+  selector:
+    k8s-app: elasticsearch
+    version: v6.3.2
+  type: NodePort 
+  ports:
+    - name: rest
+      port: 9200
+      targetPort: 9200
+      nodePort: 32301
+    - name: inter-node
+      port: 9300
+      targetPort: 9300
+      nodePort: 32302

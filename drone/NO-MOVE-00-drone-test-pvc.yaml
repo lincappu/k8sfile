@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: drone-data
+  namespace: kube-system
+spec:
+  storageClassName: alicloud-nas
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi

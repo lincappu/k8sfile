@@ -1,0 +1,51 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zk-node3
+  namespace: devops
+  labels:
+    app: zk-node3
+spec:
+  selector:
+    matchLabels:
+      app: zk-node3
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zk-node3
+    spec:
+      hostname: zk-node3
+      nodeSelector:
+        kubernetes.io/hostname: node3
+      containers:
+      - name: zk-node2
+        image: "zookeeper:3.4.10"
+        resources:
+          requests:
+            memory: "5Gi"
+            cpu: "2"
+        ports:
+        - containerPort: 2181
+          name: client
+        - containerPort: 2888
+          name: server
+        - containerPort: 3888
+          name: leader-election
+        env:
+        - name: "ZOO_MY_ID"
+          value: "3"
+        - name: "ZOO_SERVERS"
+          value: server.1=zk-node1:2888:3888 server.2=zk-node2:2888:3888 server.3=zk-node3:2888:3888 server.4=zk-node4:2888:3888 server.5=zk-node5:2888:3888
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
+        - name: logdir
+          mountPath: /datalog
+      volumes:
+      - name: datadir
+        hostPath: 
+          path: /data/zookeeper/data
+      - name: logdir
+        hostPath: 
+          path: /data/zookeeper/log

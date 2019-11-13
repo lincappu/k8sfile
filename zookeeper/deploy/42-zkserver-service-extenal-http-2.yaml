@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zk-node2
+  name: zk-node2-extenal
+  namespace: devops
+spec:
+  type: NodePort
+  ports:
+  - port: 2181
+    protocol: TCP
+    targetPort: 2181
+    nodePort: 30820
+    name: client
+  selector:
+    app: zk-node2

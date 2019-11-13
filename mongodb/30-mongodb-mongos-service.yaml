@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongos-router-service
+  labels:
+    name: mongos-router
+  namespace: mongodb
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
+  selector:
+    role: mongos-router
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongos-router
+  namespace: mongodb
+spec:
+  serviceName: mongos-router-service
+  replicas: 2
+  selector:
+    matchLabels:
+      role: mongos-router
+      tier: routers
+      replicaset: routers
+  template:
+    metadata:
+      labels:
+        role: mongos-router
+        tier: routers
+        replicaset: routers
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: replicaset
+                  operator: In
+                  values:
+                  - routers
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: secrets-volume
+          secret:
+            secretName: shared-bootstrap-data
+            defaultMode: 256
+        - name: sysctl-config-1
+          configMap:
+            name: sysctl-conf-1
+        - name: sysctl-config-2
+          configMap:
+            name: sysctl-conf-2
+      containers:
+        - name: mongos-container
+          image: mongo
+          command:
+            - "numactl"
+            - "--interleave=all"
+            - "mongos"
+            - "--port"
+            - "27017"
+            - "--bind_ip"
+            - "0.0.0.0"
+            - "--configdb"
+            - "ConfigDBRepSet/mongod-configdb-0.mongodb-configdb-service.mongodb.svc.cluster.local:27017,mongod-configdb-1.mongodb-configdb-service.mongodb.svc.cluster.local:27017,mongod-configdb-2.mongodb-configdb-service.mongodb.svc.cluster.local:27017"
+            - "--clusterAuthMode"
+            - "keyFile"
+            - "--keyFile"
+            - "/etc/secrets-volume/internal-auth-mongodb-keyfile"
+            - "--setParameter"
+            - "authenticationMechanisms=SCRAM-SHA-1"
+          resources:
+            requests:
+              cpu: 0.25
+              memory: 512Mi
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: secrets-volume
+              readOnly: true
+              mountPath: /etc/secrets-volume
+            - name: sysctl-config-1
+              mountPath: /sys/kernel/mm/transparent_hugepage/enabled
+              subPath: enabled
+            - name: sysctl-config-2
+              mountPath: /sys/kernel/mm/transparent_hugepage/defrag
+              subPath: defrag

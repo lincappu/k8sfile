@@ -1,0 +1,18 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: drone-agent
+  namespace: devops 
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: runner.alphalawyer.cn 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: drone-agent-svc
+          servicePort: 3000

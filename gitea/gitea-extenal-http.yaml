@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-extenal-http
+  namespace: devops
+  labels:
+    app: gitea
+spec:
+  ports:
+    - name: gitea
+      port: 3000
+      targetPort: 3000
+      nodePort: 32010
+    - name: gitea-ssh
+      port: 22
+      targetPort: 22
+      nodePort: 32011
+  selector:
+    app: gitea
+  type: NodePort
+  sessionAffinity: ClientIP

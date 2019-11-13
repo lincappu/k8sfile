@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-manager
+  namespace: devops
+  labels:
+    app: kafka-manager
+spec:
+  type: NodePort
+  ports:
+  - name: kafka
+    port: 9000
+    targetPort: 9000
+    nodePort: 30900
+  selector:
+    app: kafka-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-manager
+  namespace: devops
+  labels:
+    app: kafka-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-manager
+  template:
+    metadata:
+      labels:
+        app: kafka-manager
+    spec:
+      containers:
+      - name: kafka-manager
+        image: zenko/kafka-manager:2.0.0.2 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: kafka-manager
+          containerPort: 9000
+          protocol: TCP
+        env:
+        - name: ZK_HOSTS
+          value: zk-node1:2181,zk-node2:2181,zk-node3:2181,zk-node4:2181,zk-node5:2181
+#        livenessProbe:
+#          httpGet:
+#            path: /api/health
+#            port: kafka-manager
+#        readinessProbe:
+#          httpGet:
+#            path: /api/health
+#            port: kafka-manager
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4096Mi
+          requests:
+            cpu: 1000m
+            memory: 512Mi

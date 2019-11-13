@@ -1,0 +1,18 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gitea-web
+  namespace: devops 
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: dg.alphalawyer.cn 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: gitea
+          servicePort: 3000

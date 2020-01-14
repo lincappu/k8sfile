@@ -21,12 +21,14 @@ spec:
     spec:
       containers:
       - name: elasticsearch
-        image: lincappu/elasticsearch-6.3.2-crack:prod-v3 
+        image: lincappu/elasticsearch-6.3.2-crack:prod-v2 
         imagePullPolicy: IfNotPresent
         resources:
             limits:
+              cpu: "4000m"
               memory: "30Gi"
             requests:
+              cpu: "4000m"
               memory: "30Gi"
         ports:
         - containerPort: 9200

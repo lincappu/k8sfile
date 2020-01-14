@@ -33,6 +33,8 @@ spec:
       labels:
         app: job-case-parse
     spec:
+      imagePullSecrets:
+      - name: registry-key
       containers:
       - name: job-case-parse
         image: 172.16.82.12:32022/case-parse-job:mq-201911072037

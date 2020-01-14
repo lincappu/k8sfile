@@ -1,0 +1,13 @@
+{
+	"auths": {
+		"172.16.82.12:32022": {
+			"auth": "YWRtaW46aWNvdXJ0MTIz"
+		},
+		"https://index.docker.io/v1/": {
+			"auth": "bGluY2FwcHU6bGluLjExMTU1NQ=="
+		}
+	},
+	"HttpHeaders": {
+		"User-Agent": "Docker-Client/19.03.4 (linux)"
+	}
+}
